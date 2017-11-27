@@ -81,8 +81,5 @@ public class CalculatorNegativeTest {
         assertEquals("First number is incorrect format.", calculator.checkNumbers("-.124","10"));
         assertEquals("Second number is incorrect format.", calculator.checkNumbers("10","-.125774"));
 
-
     }
-
-
 }
