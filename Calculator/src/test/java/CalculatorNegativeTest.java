@@ -1,3 +1,6 @@
+import Exceptions.EmptyFieldException;
+import Exceptions.LeadingZeroExceptions;
+import Exceptions.LongNumberException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,67 +22,81 @@ public class CalculatorNegativeTest {
         calculator = null;
     }
 
-    @Test
+
+    @Test(expected = ArithmeticException.class)
     public void testZeroArg() throws Exception {
-        assertEquals("Division by zero is impossible.", calculator.checkNumbers("10","0"));
-        assertEquals("Division by zero is impossible.", calculator.checkNumbers("0","0"));
-        assertEquals("Ok", calculator.checkNumbers("0","10"));
-
+        assertEquals("0", calculator.div("1000", "0"));
+        assertEquals("0", calculator.div("0", "0"));
     }
 
-    @Test
-    public void emptyFields() throws Exception {
-        assertEquals("First number field is empty.", calculator.checkNumbers("","10"));
-        assertEquals("Second number field is empty.", calculator.checkNumbers("10",""));
+
+    @Test(expected = LeadingZeroExceptions.class)
+    public void testLeadingZero() throws Exception {
+        assertEquals("0", calculator.div("1000", "000"));
+        assertEquals("0", calculator.div("000", "1000"));
+        assertEquals("0", calculator.div("000", "000"));
+        assertEquals("0", calculator.div("-015","1000"));
+        assertEquals("0", calculator.div("1000","-0000765"));
     }
 
-    @Test
-    public void longNumber() throws Exception {
-        assertEquals("First number is too long.", calculator.checkNumbers("1234567890123456","10"));
-        assertEquals("Second number is too long.", calculator.checkNumbers("10","12345678901234566666"));
+
+    @Test(expected = EmptyFieldException.class)
+    public void testEmptyFields() throws Exception {
+        assertEquals("0", calculator.div("", "1000"));
+        assertEquals("0", calculator.div("1000", ""));
     }
 
-    @Test
-    public void notNumber() throws Exception {
+
+    @Test(expected = LongNumberException.class)
+    public void testLongNumber() throws Exception {
+        //16 цифр
+        assertEquals("0", calculator.div("1000", "1234567890123456"));
+        assertEquals("0", calculator.div("1234567890123456", "1000"));
+
+        //15 цифр с минусом
+        assertEquals("0", calculator.div("1000", "-123456789012345"));
+        assertEquals("0", calculator.div("-123456789012345", "1000"));
+
+        //15 цифр с точкой
+        assertEquals("0", calculator.div("1000", "123.456789012345"));
+        assertEquals("0", calculator.div("123.456789012345", "1000"));
+
+        //100 цифр
+        String number = "10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        assertEquals("0", calculator.div("1000", number));
+        assertEquals("0", calculator.div(number, "1000"));
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void testNotNumber() throws Exception {
         //символы
-        assertEquals("First number is not number.", calculator.checkNumbers("abcd1234","10"));
-        assertEquals("Second number is not number.", calculator.checkNumbers("10","1234ab^&*("));
-
-        //две точки
-        assertEquals("First number is not number.", calculator.checkNumbers("0.123.123","10"));
-        assertEquals("Second number is not number.", calculator.checkNumbers("10","..12"));
+        assertEquals("0", calculator.div("1000", "abcdf%$#@"));
+        assertEquals("0", calculator.div("abcdf!#(_+", "1000"));
 
         //минус не в начале
-        assertEquals("First number is not number.", calculator.checkNumbers("45-12","10"));
-        assertEquals("Second number is not number.", calculator.checkNumbers("10","11-11"));
+        assertEquals("0", calculator.div("45-12","1000"));
+        assertEquals("0", calculator.div("1000","11-11"));
 
-        assertEquals("First number is not number.", calculator.checkNumbers("4.9e-324","10"));
-        assertEquals("Second number is not number.", calculator.checkNumbers("10","4.9e-324"));
-
+        //несколько минусов
+        assertEquals("0", calculator.div("-45-12","1000"));
+        assertEquals("0", calculator.div("1000","1-1-1-1"));
     }
 
 
-    @Test
-    public void incorrectFormatNumber() throws Exception {
+    @Test(expected = NumberFormatException.class)
+    public void testWithDot() throws Exception {
         //точка в начале
-        assertEquals("First number is incorrect format.", calculator.checkNumbers(".124","10"));
-        assertEquals("Second number is incorrect format.", calculator.checkNumbers("10",".01"));
+        assertEquals("0", calculator.div(".124","1000"));
+        assertEquals("0", calculator.div("1000",".01"));
 
         //точка в конце
-        assertEquals("First number is incorrect format.", calculator.checkNumbers("1255.","10"));
-        assertEquals("Second number is incorrect format.", calculator.checkNumbers("10","14242453."));
+        assertEquals("0", calculator.div("1255.","1000"));
+        assertEquals("0", calculator.div("1000","14242453."));
 
-        //00
-        assertEquals("First number is incorrect format.", calculator.checkNumbers("0123","10"));
-        assertEquals("Second number is incorrect format.", calculator.checkNumbers("10","000123"));
-
-        //-00
-        assertEquals("First number is incorrect format.", calculator.checkNumbers("-015","10"));
-        assertEquals("Second number is incorrect format.", calculator.checkNumbers("10","-0000765"));
-
-        //-.
-        assertEquals("First number is incorrect format.", calculator.checkNumbers("-.124","10"));
-        assertEquals("Second number is incorrect format.", calculator.checkNumbers("10","-.125774"));
+        //несколько точек
+        assertEquals("0", calculator.div("1.0.00","1000"));
+        assertEquals("0", calculator.div("1000","1.00..00.00"));
 
     }
+
 }
