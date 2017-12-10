@@ -1,71 +1,108 @@
+import Exceptions.EmptyFieldException;
+import Exceptions.LeadingZeroExceptions;
+import Exceptions.LongNumberException;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+/**
+ * class Calculator
+ * Выполняет деление двух чисел.
+ * Формат разделителя для дробного числа - точка. При вводе числа допускаются только цифры, одна точка и один минус .
+ * Максимальное число цифр в числе - 15 (вместе с точкой и минусом).
+ * Результат вычисляется с точностью до 2 знаков после запятой.
+ * Округление происходит до 2 знаков после запятой, по правиласм округления. Цифры от 0 до 4 - округляются в меньшую
+ * сторону, от 5 до 9 - в большую.
+ **/
+
+
 public class Calculator {
 
-    public String checkNumbers(String a, String b){
-        if(isEmpty(a)) return "First number field is empty.";
-        if(isEmpty(b)) return "Second number field is empty.";
+    //проверка на 0, пустое поле, недопустимую длину, ведущие нули
+    private void checkNumbers(String a, String b) throws EmptyFieldException, LongNumberException, ArithmeticException, LeadingZeroExceptions {
+        if (isZero(b)) throw new ArithmeticException();
 
-        if(!checkLength(a)) return "First number is too long.";
-        if(!checkLength(b)) return "Second number is too long.";
+        if (isEmpty(a) || isEmpty(b)) throw new EmptyFieldException();
 
-        if(isZero(b)) return "Division by zero is impossible.";
+        if (!checkLength(a) || !checkLength(b)) throw new LongNumberException();
 
-        if(!isNumber(a)) return "First number is not number.";
-        if(!isNumber(b)) return "Second number is not number.";
+        if (!isZero(a) && isLeadingZero(a) || isLeadingZero(b)) throw new LeadingZeroExceptions();
 
-        if(!isCorrectNum(a)) return "First number is incorrect format.";
-        if(!isCorrectNum(b)) return "Second number is incorrect format.";
-
-        return "Ok";
     }
 
-    private boolean isZero(String str){
-        if(str.length() == 1 && str == "0") return true;
+
+    //проверка на 0
+    private boolean isZero(String str) {
+        if (str.length() == 1 && str.equals("0")) return true;
         return false;
     }
 
-    private boolean isEmpty(String str){
-        if(str.length() == 0) return true;
+
+    //проверка на пустое поле
+    private boolean isEmpty(String str) {
+        if (str.length() == 0) return true;
         return false;
     }
 
-    private boolean checkLength(String str){
-        if(str.length() > 15) return false;
+
+    //проверка на длину
+    private boolean checkLength(String str) {
+        if (str.length() > 15) return false;
         return true;
     }
 
 
-    private boolean isCorrectNum(String str){
-        int lastIndex = str.length() - 1;
-        if(str.charAt(0) == '.') return false;
-        if(str.charAt(lastIndex) == '.') return false;
-        if(str.length() >= 2 && str.charAt(0) == '0' && str.charAt(1) != '.') return false;
-        if(str.length() >= 3 && str.charAt(0) == '-' && str.charAt(1) == '0' && str.charAt(2) != '.') return false;
-        if(str.length() >= 2 && str.charAt(0) == '-' && str.charAt(1) == '.') return false;
-        return true;
+    //проверка на ведущие 0
+    private boolean isLeadingZero(String str) {
+        if (str.length() >= 1 && str.charAt(0) == '0') return true;
+        if (str.length() == 2 && str.charAt(0) == '-' && str.charAt(1) == '0') return true;
+        if (str.length() > 2 && str.charAt(0) == '-' && str.charAt(1) == '0' && str.charAt(2) != '.') return true;
+
+        return false;
+
     }
 
+    /**
+     * Метод, осуществляющий деление. Сначала методом checkNumbers осуществляется проверка чисел на:
+     * длину,
+     * пустые поля,
+     * ведущие нули,
+     * деление на 0
+     *
+     * @param a - делимое
+     * @param b - делитель
+     * @return - результат деления
+     * При некорректных входных данных выбрасывает исключения, в зависимости от типа ошибки.
+     */
 
-    private boolean isNumber(String str){
-        boolean dot = false;
-        for(int i = 0; i<str.length(); ++i){
-            if(str.charAt(i) < 58 && str.charAt(i) > 47) continue;
-            else if(str.charAt(i) == '.'){
-                if(dot) return false;
-                dot = true;
-            }
-            else if(str.charAt(i) == '-' && i == 0) continue;
-            else return false;
+    public String div(String a, String b) throws EmptyFieldException, LongNumberException, ArithmeticException, NumberFormatException, LeadingZeroExceptions {
+
+        BigDecimal result = new BigDecimal("0");
+        BigDecimal firstNum, secondNum;
+
+
+        try {
+            checkNumbers(a, b);
+        } catch (EmptyFieldException e) {
+            throw new EmptyFieldException();
+        } catch (LongNumberException e) {
+            throw new LongNumberException();
+        } catch (ArithmeticException e) {
+            throw new ArithmeticException();
+        } catch (LeadingZeroExceptions e) {
+            throw new LeadingZeroExceptions();
         }
-        return true;
-    }
 
-    public BigDecimal div(String a, String b){
-        BigDecimal firstNum = new BigDecimal(a);
-        BigDecimal secondNum = new BigDecimal(b);
-        return firstNum.divide(secondNum, 2, RoundingMode.HALF_UP);
+
+        try {
+            if (a.charAt(0) == '.' || b.charAt(0) == '.') throw new NumberFormatException();
+            firstNum = new BigDecimal(a);
+            secondNum = new BigDecimal(b);
+            result = firstNum.divide(secondNum, 2, RoundingMode.HALF_UP);
+            return result.toString();
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException();
+        }
     }
 
 }
