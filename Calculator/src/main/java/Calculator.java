@@ -26,14 +26,16 @@ public class Calculator {
 
         if (!checkLength(a) || !checkLength(b)) throw new LongNumberException();
 
-        if (!isZero(a) && isLeadingZero(a) || isLeadingZero(b)) throw new LeadingZeroExceptions();
+        if (isLeadingZero(a) || isLeadingZero(b)) throw new LeadingZeroExceptions();
+
+        if(incorrectFormat(a) || incorrectFormat(b)) throw new NumberFormatException();
 
     }
 
 
     //проверка на 0
     private boolean isZero(String str) {
-        if (str.length() == 1 && str.equals("0")) return true;
+        if (str.equals("0")) return true;
         return false;
     }
 
@@ -54,12 +56,23 @@ public class Calculator {
 
     //проверка на ведущие 0
     private boolean isLeadingZero(String str) {
-        if (str.length() >= 1 && str.charAt(0) == '0') return true;
-        if (str.length() == 2 && str.charAt(0) == '-' && str.charAt(1) == '0') return true;
-        if (str.length() > 2 && str.charAt(0) == '-' && str.charAt(1) == '0' && str.charAt(2) != '.') return true;
+        int len = str.length();
+        //00...
+        if(len > 1 && str.charAt(0) == '0' && str.charAt(1) == '0') return true;
+        //-0
+        if(len == 2 && str.charAt(0) == '-' && str.charAt(1) == '0') return true;
+        //-00...
+        if(len > 2 && str.charAt(0) == '-' && str.charAt(1) == '0' && str.charAt(2) == '0') return true;
 
         return false;
 
+    }
+
+    //проверка на -.
+    private boolean incorrectFormat(String str){
+        if(str.length() > 2 && str.charAt(0) == '-' && str.charAt(1) == '.') return true;
+        if(str.charAt(0) == '.') return true;
+        return false;
     }
 
     /**
@@ -77,32 +90,15 @@ public class Calculator {
 
     public String div(String a, String b) throws EmptyFieldException, LongNumberException, ArithmeticException, NumberFormatException, LeadingZeroExceptions {
 
-        BigDecimal result = new BigDecimal("0");
+        BigDecimal result;
         BigDecimal firstNum, secondNum;
+        checkNumbers(a, b);
 
+        firstNum = new BigDecimal(a);
+        secondNum = new BigDecimal(b);
+        result = firstNum.divide(secondNum, 2, RoundingMode.HALF_UP);
+        return result.toString();
 
-        try {
-            checkNumbers(a, b);
-        } catch (EmptyFieldException e) {
-            throw new EmptyFieldException();
-        } catch (LongNumberException e) {
-            throw new LongNumberException();
-        } catch (ArithmeticException e) {
-            throw new ArithmeticException();
-        } catch (LeadingZeroExceptions e) {
-            throw new LeadingZeroExceptions();
-        }
-
-
-        try {
-            if (a.charAt(0) == '.' || b.charAt(0) == '.') throw new NumberFormatException();
-            firstNum = new BigDecimal(a);
-            secondNum = new BigDecimal(b);
-            result = firstNum.divide(secondNum, 2, RoundingMode.HALF_UP);
-            return result.toString();
-        } catch (NumberFormatException e) {
-            throw new NumberFormatException();
-        }
     }
 
 }
